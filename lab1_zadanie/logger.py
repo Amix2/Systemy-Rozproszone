@@ -37,6 +37,7 @@ def create_socket(multicast_ip, port):
     # If you try to bind to all interfaces on Windows, no multicast data will arrive.
     # Hence the following.
     my_socket.bind((local_ip, port))
+    my_socket.settimeout(5)
 
     return my_socket
 
@@ -47,9 +48,11 @@ buff = []
 print('PYTHON UDP SERVER')
 print(serverSocket.getsockname())
 while True:
-
-    buff, address = serverSocket.recvfrom(1024)
-    print("python udp server received msg: ")
-    print(str(buff,  "UTF-8").rstrip('\x00'))
-    print(address)
+    try:
+        buff, address = serverSocket.recvfrom(1024)
+        print("python udp server received msg: ")
+        print(str(buff,  "UTF-8").rstrip('\x00'))
+        print(address)
+    except:
+        print("timeout")
 

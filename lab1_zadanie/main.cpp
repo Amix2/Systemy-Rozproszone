@@ -14,44 +14,52 @@
 #include <winsock2.h>
 #include <stdio.h>
 #include <string>
+
+#include "MySocket.h"
+//#include "Messages.h"
+
 using namespace std;
 
-void InitWinsock()
-{
-    WSADATA wsaData;
-    WSAStartup(MAKEWORD(2, 2), &wsaData);
-}
 
 int main(int argc, char* argv[])
 {
+    // char so[10] = "sourcIP";
+    // char de[10] = "destIP";
+    // char text[1024] = "wiadomosc";
+    // UnknownMessage uMsg = createMessageText(text, de, so);
+    // printTextMessage(uMsg);
+    // char* bytes;
+    // size_t size;
+    // bytes = exportMessageToBytes(&size, uMsg);
+    // UnknownMessage uMsg2 = createMessageFromBytes(bytes, size);
+    // printTextMessage(uMsg2);
+
     cout<<"main start"<<endl;
-    SOCKET socketC;
+
     char addr[] = "224.2.2.2";
-
-    InitWinsock();
-    struct sockaddr_in serverInfo;
-    int len = sizeof(serverInfo);
-    serverInfo.sin_family = AF_INET;
-    serverInfo.sin_port = htons(9009);
-    serverInfo.sin_addr.s_addr = inet_addr(addr);
-
-    socketC = socket(AF_INET,SOCK_DGRAM,0);
-    cout<<socketC<<endl;
-    for(int i=0; i<10; i++) {
-        string msg = "wiadmocs " + to_string(i);
-        char buffer[1024];
-        ZeroMemory(buffer, sizeof(buffer));
-	    strcpy(buffer, msg.c_str());
-        cout<<"msg: "<<buffer<<endl;
-
-        if (sendto(socketC, buffer, sizeof(buffer), 0, (sockaddr*)&serverInfo, len) != SOCKET_ERROR)
-        {
-            cout<<"wysłano9"<<endl;
-        }
-        Sleep(1000);
+    int port = 9009;
+    if(argc == 1) {
+        UTPSocket sock;
+        UnknownMessage uMsg = sock.recvMessage();
+        printTextMessage(uMsg);
+    } else {
+        UTPSocket sock;
+        char so[10] = "sourcIP";
+        char de[10] = "destIP";
+        char text[1024] = "wiadomosc";
+        UnknownMessage uMsg = createMessageText(text, de, so);
+        int port = atoi(argv[1]);
+        cout<<"sending: "<<port<<" "<<argv[2]<<endl;
+        printTextMessage(uMsg);
+        sock.send(uMsg, argv[2], port);
     }
-    closesocket(socketC);
-    WSACleanup();
+    // string msg = "wiadmocs " + to_string(1);
 
+    // char* mesC = new char[10];
+    // strcpy(mesC, (char*)&msg);
+    // UTPSocket sock;
+    // cout<<sock.send(msg, addr, port)<<endl;
+
+    cout<<"Main end"<<endl;
     return 0;
 }
