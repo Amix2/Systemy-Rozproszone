@@ -26,6 +26,9 @@ class UTPSocket {
         int send(UnknownMessage msg, char addr[], int port);
         int send(Message msg, char addr[], int port);
         UnknownMessage recvMessage();
+        Message recvMessage();
+
+
 };
 
 class Logger {

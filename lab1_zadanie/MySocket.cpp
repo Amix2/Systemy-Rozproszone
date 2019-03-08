@@ -68,7 +68,7 @@ int UTPSocket::send(Message msg, char addr[], int port) {
     sendto(mySocket, (char*)&msg, sizeof(msg), 0, (sockaddr*)&recvInfo, sizeof(recvInfo));
 }
 
-UnknownMessage UTPSocket::recvMessage() {
+UnknownMessage recvMessageUNUSED() {
     int iResult = 0;
     char bytes[2048];
     sockaddr_in senderAddr;
@@ -81,6 +81,18 @@ UnknownMessage UTPSocket::recvMessage() {
     UnknownMessage msg = createMessageFromBytes(bytes, 0);
     printTextMessage(msg);
 
+    return msg;
+}
+
+Message UTPSocket::recvMessage() {
+    int iResult = 0;
+    Message msg;
+    sockaddr_in senderAddr;
+    int SenderAddrSize = sizeof (senderAddr);
+    iResult = recvfrom(mySocket, (char*)(&msg), 2048, 0, (sockaddr *) &senderAddr, &SenderAddrSize);
+    if (iResult == SOCKET_ERROR) {
+        printf("UTPSocket recvMessage recvfrom error:: %d\n", WSAGetLastError());
+    }
     return msg;
 }
 
