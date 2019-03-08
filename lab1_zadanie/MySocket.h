@@ -24,7 +24,7 @@ class UTPSocket {
         int send(std::string str, char addr[], int port);
         int send(char c[], char addr[], int port, size_t size = -1);
         int send(UnknownMessage msg, char addr[], int port);
-        UnknownMessage recvMessage();
+        Message recvMessage();
 
 
 };
