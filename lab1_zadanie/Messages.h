@@ -1,5 +1,6 @@
 #include <iostream>
 #define ClientNameLength 10
+#define MaxTextLen 1024
 
 enum messageType {
     TOKEN_FREE = 1,
@@ -10,9 +11,24 @@ const size_t enumSize = sizeof(messageType);
 
 struct Message {
     messageType type;
-    size_t contentLength;
-    char* content;
+    int token; // 0->NO; 1->YES
+    char senderName[ClientNameLength];
+    char senderIP[ClientNameLength];
+    int senderPort;
+    char receiverName[ClientNameLength];
+    char receiverIP[ClientNameLength];
+    int receiverPort;
+    char text[MaxTextLen];
 };
+/*
+    sieć 1->2->3
+    NOWY:
+        4 --> 1
+        1 --> do okoła
+        
+
+
+*/
 struct UnknownMessage {
     messageType type;
     size_t contentLength;

@@ -52,12 +52,20 @@ int UTPSocket::send(char msg[], char addr[], int port, size_t size) {
 
 
 int UTPSocket::send(UnknownMessage msg, char addr[], int port) {
-    printf("UTPSocket::send message\n");
+    printf("UTPSocket::send UnknownMessage\n");
     size_t s;
     char* bytes = exportMessageToBytes(&s, msg);
     UnknownMessage msg2 = createMessageFromBytes(bytes, 0);
     printTextMessage(msg2);
     UTPSocket::send(bytes, addr, port, s);
+}
+int UTPSocket::send(Message msg, char addr[], int port) {
+    printf("UTPSocket::send message\n");
+    struct sockaddr_in recvInfo;
+    recvInfo.sin_family = AF_INET;
+    recvInfo.sin_port = htons(port);
+    recvInfo.sin_addr.s_addr = inet_addr(addr);
+    sendto(mySocket, (char*)&msg, sizeof(msg), 0, (sockaddr*)&recvInfo, sizeof(recvInfo));
 }
 
 UnknownMessage UTPSocket::recvMessage() {
