@@ -1,6 +1,19 @@
 #include <iostream>
 #include "Messages.h"
 
+void print(Message msg) {
+    printf("Message Type:%d; Token:%d::\n\tsrc: %s @ %s : %d\n\tdst: %s @ %s : %d\n\t=> %s\n", 
+    msg.type, msg.token, 
+    msg.senderName, msg.senderIP, msg.senderIP, 
+    msg.receiverName, msg.receiverIP, msg.receiverPort,
+    msg.text);
+}
+
+
+
+
+
+
 UnknownMessage createMessageFromBytes(char* bytes, size_t size) {
     UnknownMessage msg;
     msg.type = getMsgType(bytes, size);
@@ -48,10 +61,6 @@ messageType getMsgType(char* bytes, size_t size) {
     messageType mType;
     memcpy(&mType, bytes, sizeof(messageType));
     return mType;
-}
-
-char* getTextFromTextMsg(Message message) {
-    return message.content + enumSize;
 }
 
 size_t getTextLengthFromTextMsg(char bytes[], size_t size) {

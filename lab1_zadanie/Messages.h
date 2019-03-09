@@ -3,22 +3,28 @@
 #define MaxTextLen 1024
 
 enum messageType {
-    TOKEN_FREE = 1,
-    TOKEN_USED,
+    FREE,
     TEXT
 };
 const size_t enumSize = sizeof(messageType);
 
 struct Message {
     messageType type;
-    int token; // 0->NO; 1->YES
+    bool token; // 0->NO; 1->YES
     char senderName[ClientNameLength];
     char senderIP[ClientNameLength];
     int senderPort;
     char receiverName[ClientNameLength];
     char receiverIP[ClientNameLength];
     int receiverPort;
-    char text[MaxTextLen];
+    union {
+        char text[MaxTextLen];
+        struct {
+            char name[ClientNameLength];
+            char IPaddr[19];
+            int Port;
+        } clientData;
+    } data;
 };
 /*
     sieć 1->2->3
@@ -37,8 +43,11 @@ struct UnknownMessage {
 struct TextMessage {
     char destination[ClientNameLength];
     char source[ClientNameLength];
-    char text[1024];
+    char text[MaxTextLen];
 };
+
+void print(Message msg);
+
 
 UnknownMessage createMessageFromBytes(char* bytes, size_t size);
 UnknownMessage createMessageText(char text[1024], char destination[10], char source[10]);

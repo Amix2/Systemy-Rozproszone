@@ -16,16 +16,17 @@
 class UTPSocket {
     private:
         SOCKET mySocket;
-        char myIP[16];
-        int myPort;
+        char myIP[16]; // to remove
     public:
-        UTPSocket(int port = 0, char* ipAddr = (char*)"127.0.0.1");
+        int myPort;
+        UTPSocket(int port, char* ipAddr = (char*)"127.0.0.1");
+        UTPSocket() {};
         ~UTPSocket();
+        void init(int port = 0, char* ipAddr = (char*)"127.0.0.1");
         int send(std::string str, char addr[], int port);
         int send(char c[], char addr[], int port, size_t size = -1);
         int send(UnknownMessage msg, char addr[], int port);
         int send(Message msg, char addr[], int port);
-        UnknownMessage recvMessage();
         Message recvMessage();
 
 
