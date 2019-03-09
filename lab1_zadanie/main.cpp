@@ -12,28 +12,39 @@
 #include <iostream>
 #include <winsock2.h>
 #include <string>
+#include <queue>
 
 #include "MySocket.h"
 using namespace std;
 const char defaultAddr[16] = "127.0.0.1";
+#define maxClientsNum 10
 
 UTPSocket myUDPSock;
 char myAddr[16];
 int myPort;
 char myName[ClientNameLength];
+char neiAddr[16];
+int neiPort;
+char neiName[ClientNameLength];
 bool hasToken;
-
-enum KlientStates {
-    ALONE = 1,
-    HAS_TOKEN,
+bool isAlone = true;
+queue <Message> msgQueue;
+Message lastMsg;
+enum ClientStates {
+    HAS_TOKEN = 1,
     NO_TOKEN
 };
+ClientStates clientList[maxClientsNum];
 
-// args must: myName hasToken
-// args extra: myPort, e-extra: myAddr;
+// args must: myName hasToken myPort
+// args extra: neiPort, e-extra: neiAddr;
 void initMyself(int argc, char* argv[]);
+// main.exe mojeImie 1 9009
+//main.exe mojeImie 1 9009 1234
 
-Message makeTextMsg(char text[MaxTextLen], char recvAddr[16], int recvPort, char recvName[ClientNameLength]);
+Message makeTextMsg(char text[MaxTextLen], char recvName[ClientNameLength]);
+Message makeGlobalRegisterMsg(Message localRegisterMsg);
+void printStatus();
 
 int main(int argc, char* argv[])
 {
@@ -50,6 +61,33 @@ int main(int argc, char* argv[])
 
     cout<<"main start "<<argc<<endl;
     initMyself(argc, argv);
+    while(true) {
+        /*
+            IF ( alone  )   wait for register msg
+            IF ( !alone and !token ) wait for token msg
+            IF ( !alone and token ) {
+                IF ( token free ) take msg from queue and send it
+                IF ( token used ) send msg with token to next
+            }
+        */
+       printStatus();
+       lastMsg = myUDPSock.recvMessage();
+        if(hasToken && !isAlone) {
+            if(lastMsg.type != FREE) {
+                //send msg to nei
+            } else {
+                // I have token and can send my message
+            }
+        }
+    }
+    
+
+
+
+
+
+
+
     char addr[] = "224.2.2.2";
     int port = 9009;
     if(argc < 4) {
@@ -64,7 +102,7 @@ int main(int argc, char* argv[])
         char text[1024] = "wiadomosc";
         int port = atoi(argv[1]);
         cout<<"sending to: "<<port<<" "<<argv[2]<<endl;
-        Message msg = makeTextMsg("jakis text wiadomowasi", myAddr, myPort, myName);
+        Message msg = makeTextMsg("jakis text wiadomowasi", myName);
         strcpy(msg.senderName, so);
         print(msg); 
         sock.send(msg, argv[2], port);
@@ -80,37 +118,56 @@ int main(int argc, char* argv[])
     return 0;
 }
 
+// args must: myName hasToken myPort
+// args extra: neiPort, e-extra: neiAddr;
 void initMyself(int argc, char* argv[]) {
     if(argc < 2) {
         printf("Error: za malo arg\n");
         exit(1);
     }
     strcpy(myName, argv[1]);
-    if(atoi(argv[3]) == 1) hasToken = true; else hasToken = false;
-    if(argc >= 4) {
-        myPort = atoi(argv[3]);
-        if(argc == 5) {
-            strcpy(myAddr, argv[4]);
+    if(atoi(argv[2]) == 1) hasToken = true; else hasToken = false;
+    myPort = atoi(argv[3]);
+    strcpy(myAddr, defaultAddr);
+    // neighbour data
+    if(argc >= 5) {
+        isAlone = false;
+        neiPort = atoi(argv[4]);
+        if(argc == 6) {
+            strcpy(neiAddr, argv[4]);
         } else {
-            strcpy(myAddr, defaultAddr);
+            strcpy(neiAddr, defaultAddr);
         }
     } else {
-        myPort = 0; //will be set after socket init
+        neiPort = -1;
+        isAlone = true;
     }
     myUDPSock.init(myPort, myAddr);
-    myPort = myUDPSock.myPort;
 
     printf("initMyself\n\tToken:%d, Name:%s, IP:%s :: %d\n", hasToken, myName, myAddr, myPort);
+    if(!isAlone) 
+        printf("\tNei: Name:%s, IP:%s :: %d\n", neiName, neiAddr, neiPort);
 }
 
-Message makeTextMsg(char text[MaxTextLen], char recvAddr[16], int recvPort, char recvName[ClientNameLength]) {
+Message makeTextMsg(char text[MaxTextLen], char recvName[ClientNameLength]) {
+    printf("makeTextMsg: to %s, content: %s\n", recvName, text);
     Message msg;
-    strcpy(msg.senderIP, myAddr);
     strcpy(msg.senderName, myName);
-    msg.senderPort = myPort;
-    strcpy(msg.receiverIP, recvAddr);
     strcpy(msg.receiverName, recvName);
-    msg.receiverPort = recvPort;
     strcpy(msg.data.text, text);
     return msg;
+}
+
+Message makeGlobalRegisterMsg(Message localRegisterMsg) {
+    printf("makeGlobalRegisterMsg\n\tNew: Name:%s, IP:%s :: %d\n", 
+    localRegisterMsg.data.clientData.name, localRegisterMsg.data.clientData.IPaddr, localRegisterMsg.data.clientData.port);
+}
+
+void printStatus() {
+    printf("Status: Token:%d, Name:%s, IP:%s :: %d\n", hasToken, myName, myAddr, myPort);
+    if(!isAlone) 
+        printf("\tNei: Name:%s, IP:%s :: %d\n", neiName, neiAddr, neiPort);
+    else
+        printf("\tAlone\n");
+    printf("\tMsgQueue.size: %d\n", msgQueue.size());
 }

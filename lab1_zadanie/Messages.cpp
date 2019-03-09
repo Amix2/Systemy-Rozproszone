@@ -2,11 +2,10 @@
 #include "Messages.h"
 
 void print(Message msg) {
-    printf("Message Type:%d; Token:%d::\n\tsrc: %s @ %s : %d\n\tdst: %s @ %s : %d\n\t=> %s\n", 
+    printf("Message Type:%d; Token:%d::\n\tfrom %s; to %s\n\t=> %s\n", 
     msg.type, msg.token, 
-    msg.senderName, msg.senderIP, msg.senderIP, 
-    msg.receiverName, msg.receiverIP, msg.receiverPort,
-    msg.text);
+    msg.senderName, msg.receiverName,
+    msg.data.text);
 }
 
 

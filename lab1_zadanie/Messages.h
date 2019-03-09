@@ -4,7 +4,9 @@
 
 enum messageType {
     FREE,
-    TEXT
+    TEXT,
+    REGISTER_NEW,
+    LOCAL_REGISTER_NEW
 };
 const size_t enumSize = sizeof(messageType);
 
@@ -12,17 +14,13 @@ struct Message {
     messageType type;
     bool token; // 0->NO; 1->YES
     char senderName[ClientNameLength];
-    char senderIP[ClientNameLength];
-    int senderPort;
     char receiverName[ClientNameLength];
-    char receiverIP[ClientNameLength];
-    int receiverPort;
     union {
         char text[MaxTextLen];
-        struct {
+        struct { // for new register
             char name[ClientNameLength];
             char IPaddr[19];
-            int Port;
+            int port;
         } clientData;
     } data;
 };
