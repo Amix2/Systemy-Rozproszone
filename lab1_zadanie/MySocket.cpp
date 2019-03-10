@@ -1,10 +1,11 @@
 #include <Ws2tcpip.h>
 #include "MySocket.h"
 
+#define LOG(msg, ...) printf(msg, ##__VA_ARGS__);
 
 // UTPSocket
 UTPSocket::UTPSocket(int port, char* ipAddr) {
-    printf("UTPSocket constr\n");
+    LOG("UTPSocket constr\n");
     WSADATA wsaData;
     WSAStartup(MAKEWORD(2, 2), &wsaData);
     mySocket = socket(AF_INET,SOCK_DGRAM,0);
@@ -14,21 +15,22 @@ UTPSocket::UTPSocket(int port, char* ipAddr) {
     sockInfo.sin_addr.s_addr = inet_addr(ipAddr);
 
     if (bind(mySocket, (struct sockaddr *) &sockInfo, sizeof(sockInfo)) == -1)
-        printf("bind error\n");
+        LOG("bind error\n");
     
     struct sockaddr_in sockRealInfo;
     int len = sizeof(sockRealInfo);
     if (getsockname(mySocket, (struct sockaddr *) &sockRealInfo, &(len)) == -1)
-        printf("getsockname error\n");
+        LOG("getsockname error\n");
 
     strcpy(myIP, inet_ntoa(sockRealInfo.sin_addr));
 	myPort = ntohs(sockRealInfo.sin_port);
 
-    printf("Socket UDP: IP: %s port: %d\n", myIP, myPort);
+    LOG("Socket UDP: IP: %s port: %d\n", myIP, myPort);
 }
 
 int UTPSocket::send(Message msg, char addr[], int port) {
-    printf("UTPSocket::send message\n");
+    LOG("UTPSocket::send message to nei: %s : %d\n", addr, port);
+    print(msg);
     struct sockaddr_in recvInfo;
     recvInfo.sin_family = AF_INET;
     recvInfo.sin_port = htons(port);
@@ -43,13 +45,14 @@ Message UTPSocket::recvMessage() {
     int SenderAddrSize = sizeof (senderAddr);
     iResult = recvfrom(mySocket, (char*)(&msg), sizeof(msg), 0, (sockaddr *) &senderAddr, &SenderAddrSize);
     if (iResult == SOCKET_ERROR) {
-        printf("UTPSocket recvMessage recvfrom error:: %d\n", WSAGetLastError());
+        LOG("UTPSocket recvMessage recvfrom error:: %d\n", WSAGetLastError());
     }
+    print(msg);
     return msg;
 }
 
 void UTPSocket::init(int port, char* ipAddr) {
-    printf("UTPSocket init\n");
+    LOG("UTPSocket init\n");
     WSADATA wsaData;
     WSAStartup(MAKEWORD(2, 2), &wsaData);
     mySocket = socket(AF_INET,SOCK_DGRAM,0);
@@ -59,34 +62,31 @@ void UTPSocket::init(int port, char* ipAddr) {
     sockInfo.sin_addr.s_addr = inet_addr(ipAddr);
 
     if (bind(mySocket, (struct sockaddr *) &sockInfo, sizeof(sockInfo)) == -1)
-        printf("bind error\n");
+        LOG("bind error\n");
     
     struct sockaddr_in sockRealInfo;
     int len = sizeof(sockRealInfo);
     if (getsockname(mySocket, (struct sockaddr *) &sockRealInfo, &(len)) == -1)
-        printf("getsockname error\n");
+        LOG("getsockname error\n");
 
     //strcpy(myIP, inet_ntoa(sockRealInfo.sin_addr));
 	myPort = ntohs(sockRealInfo.sin_port);
 
-    printf("Socket UDP init: port: %d, addr: %s\n", myPort, ipAddr);
+    LOG("Socket UDP init: port: %d, addr: %s\n", myPort, ipAddr);
 }
 
 
 
 
 int UTPSocket::send(std::string str, char addr[], int port) {
-    return UTPSocket::send(&(str[0]), addr, port);
+    return UTPSocket::send(str.c_str(), addr, port);
 }
 int UTPSocket::send(char msg[], char addr[], int port, size_t size) {
-    UnknownMessage msg3 = createMessageFromBytes(msg, 0);
-    printTextMessage(msg3);
     struct sockaddr_in recvInfo;
     recvInfo.sin_family = AF_INET;
     recvInfo.sin_port = htons(port);
     recvInfo.sin_addr.s_addr = inet_addr(addr);
-
-    char buffer[2048];
+    char buffer[MaxTextLen];
     ZeroMemory(buffer, sizeof(buffer));
     if(size == -1)
         strcpy(buffer, msg);
@@ -94,20 +94,18 @@ int UTPSocket::send(char msg[], char addr[], int port, size_t size) {
         memcpy(buffer, msg, size);
     printf("UTPSocket sending to %s : %d\n\t-> %s\n", addr, port, msg);
     sendto(mySocket, buffer, sizeof(buffer), 0, (sockaddr*)&recvInfo, sizeof(recvInfo));
-    UnknownMessage msg2 = createMessageFromBytes(buffer, 0);
-    printTextMessage(msg2);
     return(1);
 }
 
 
-int UTPSocket::send(UnknownMessage msg, char addr[], int port) {
-    printf("UTPSocket::send UnknownMessage\n");
-    size_t s;
-    char* bytes = exportMessageToBytes(&s, msg);
-    UnknownMessage msg2 = createMessageFromBytes(bytes, 0);
-    printTextMessage(msg2);
-    UTPSocket::send(bytes, addr, port, s);
-}
+// int UTPSocket::send(UnknownMessage msg, char addr[], int port) {
+//     printf("UTPSocket::send UnknownMessage\n");
+//     size_t s;
+//     char* bytes = exportMessageToBytes(&s, msg);
+//     UnknownMessage msg2 = createMessageFromBytes(bytes, 0);
+//     printTextMessage(msg2);
+//     UTPSocket::send(bytes, addr, port, s);
+// }
 
 // UnknownMessage recvMessageUNUSED() {
 //     int iResult = 0;
@@ -137,9 +135,19 @@ UTPSocket::~UTPSocket() {
 
 Logger::Logger() {
 }
-int Logger::log(std::string msg) {
-    return(logSocket.send(msg, (char*)logAddr, logPort));
+void Logger::init() {
+    socketC = socket(AF_INET,SOCK_DGRAM,0);
 }
-int Logger::log(char msgChar[]) {
-    return(logSocket.send(msgChar, (char*)logAddr, logPort));
+int Logger::log(std::string msg) {
+    struct sockaddr_in serverInfo;
+    int len = sizeof(serverInfo);
+    serverInfo.sin_family = AF_INET;
+    serverInfo.sin_port = htons(logPort);
+    serverInfo.sin_addr.s_addr = inet_addr(logAddr);
+
+    char buffer[1024];
+    ZeroMemory(buffer, sizeof(buffer));
+	strcpy(buffer, msg.c_str());
+    LOG("logger buffer: %s\n",buffer);
+    sendto(socketC, buffer, sizeof(buffer), 0, (sockaddr*)&serverInfo, len);
 }

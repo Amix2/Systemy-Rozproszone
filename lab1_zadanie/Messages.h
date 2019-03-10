@@ -19,7 +19,7 @@ struct Message {
         char text[MaxTextLen];
         struct { // for new register
             char name[ClientNameLength];
-            char IPaddr[19];
+            char IPaddr[16];
             int port;
         } clientData;
     } data;
