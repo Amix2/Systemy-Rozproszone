@@ -14,13 +14,13 @@
 #include <string>
 #include <queue>
 #include <time.h>
-//#include "mingw.thread.h"
+#include "mingw.thread.h"
 
 #include "MySocket.h"
 using namespace std;
 const char defaultAddr[16] = "127.0.0.1";
 #define maxClientsNum 10
-#define LOG(msg, ...) printf(msg, ##__VA_ARGS__);
+#define LOG(msg, ...) {cout<<to_string((GetTickCount()/100)%10000)<<" :"; printf(msg, ##__VA_ARGS__); }
 
 UTPSocket myUDPSock;
 Logger logger;
@@ -40,24 +40,24 @@ enum {
 } InOutOption;
 queue <Message> msgQueue;
 Message *lastMsg = new Message;
-enum ClientStates {
-    HAS_TOKEN = 1,
-    NO_TOKEN,
-    UNREGISTERED
-};
-ClientStates myState = UNREGISTERED;
-ClientStates clientList[maxClientsNum];
+bool reservedToken = false;
 
 // args must: myName hasToken myPort
 // args extra: neiPort, e-extra: neiAddr;
 void initMyself(int argc, char* argv[]);
-// main.exe mojeImie 1 55005
-// main.exe clie2 0 55006 55005
+// main.exe clie 1 55005
+// main.exe clie2 0 0 55005
+// main.exe clie3 0 0 55005
 
 void InitWinsock()
 {
     WSADATA wsaData;
     WSAStartup(MAKEWORD(2, 2), &wsaData);
+}
+
+string logMsg(string str) {
+    cout<<to_string((GetTickCount()/100)%10000) + " : " + myName + " ["+to_string(myPort)+"] " + str<<endl;
+    return to_string((GetTickCount()/100)%10000) + " : " + myName + " ["+to_string(myPort)+"] " + str;
 }
 
 Message makeTextMsg(char text[MaxTextLen], char recvName[ClientNameLength]);
@@ -77,7 +77,7 @@ void InputHandler() {
         char text[MaxTextLen];
         scanf("%s %s", recvName, text);
         Message textMsg = makeTextMsg(text, recvName);
-        LOG("new text msg\n");
+        printf("New direct text msg:\n\t to %s :: %s\n", recvName, text);
         print(textMsg);
         msgQueue.push(textMsg);
     }
@@ -96,7 +96,7 @@ logger.init();
 
 
     initMyself(argc, argv);
-    //thread IOthread(InputHandler);
+    thread IOthread(InputHandler);
     printStatus();
     if(isAlone) {
         LOG("Im alone\n");
@@ -110,56 +110,10 @@ logger.init();
         InOutOption = WAIT_FOR_MSG;
     }
     while(true) {
-        /*
-            IF ( alone  )   wait for register msg
-            IF ( !alone and !token ) wait for token msg
-            IF ( !alone and token ) {
-                IF ( token free ) take msg from queue and send it
-                IF ( token used ) send msg with token to next
-            }
-        */
        printStatus();
        handleAnyAction(*lastMsg);
        Sleep(1000);
-       LOG("logger msg\n");
-
-       string msgqq = "LOOP";
-       logger.log(msgqq);
     }
-    
-
-
-
-
-
-
-
-    // char addr[] = "224.2.2.2";
-    // int port = 9009;
-    // if(argc < 4) {
-    //     UTPSocket sock(0);
-    //     Message Msg = sock.recvMessage();
-
-    //     print(Msg);
-    // } else {
-    //     UTPSocket sock(0);
-    //     char so[10] = "sourcIP";
-    //     char de[10] = "destIP";
-    //     char text[1024] = "wiadomosc";
-    //     int port = atoi(argv[1]);
-    //     cout<<"sending to: "<<port<<" "<<argv[2]<<endl;
-    //     Message msg = makeTextMsg("jakis text wiadomowasi", myName);
-    //     strcpy(msg.senderName, so);
-    //     print(msg); 
-    //     sock.send(msg, argv[2], port);
-    // }
-    // string msg = "wiadmocs " + to_string(1);
-
-    // char* mesC = new char[10];
-    // strcpy(mesC, (char*)&msg);
-    // UTPSocket sock;
-    // cout<<sock.send(msg, addr, port)<<endl;
-
     cout<<"Main end"<<endl;
     return 0;
 }
@@ -202,6 +156,9 @@ void initMyself(int argc, char* argv[]) {
 Message makeTextMsg(char text[MaxTextLen], char recvName[ClientNameLength]) {
     LOG("makeTextMsg: to %s, content: %s\n", recvName, text);
     Message msg;
+    msg.type = TEXT;
+    msg.token = true;
+    msg.reserved = -1;
     strcpy(msg.senderName, myName);
     strcpy(msg.receiverName, recvName);
     strcpy(msg.data.text, text);
@@ -222,6 +179,7 @@ Message makeGlobalRegisterMsgFromLocal(Message localRegisterMsg) {
 Message makeLocalRegisterMsg() {
     Message localRegisterMsg;
     localRegisterMsg.type = LOCAL_REGISTER_NEW;
+    localRegisterMsg.token = hasToken;
     strcpy(localRegisterMsg.data.clientData.name, myName);
     strcpy(localRegisterMsg.data.clientData.IPaddr, myAddr);
     localRegisterMsg.data.clientData.port = myPort;
@@ -241,10 +199,10 @@ Message makeFreeMsg() {
 }
 
 int handleTextMsg(Message msg) {
-    if(strcmp(msg.receiverName, myName) != 0) { // nie mnie dotyczy
+    if(strcmp(msg.receiverName, myName) != 0 && strcmp(msg.senderName, myName) != 0) { // nie mnie dotyczy
         return 0;
     }
-    LOG("New Message:\n\t%s\n", msg.data.text);
+    printf("New Message:\n\t%s\n", msg.data.text);
     return 1;
 }
 
@@ -257,6 +215,7 @@ int handleAnyAction(Message msg) {
             print(*lastMsg);
             if(lastMsg->token || hasToken) {
                 LOG("With token\n")
+                hasToken = true;
                 InOutOption = HANDLE_CURRENT;
             } else {
                 LOG("No token, add to queue and still wait\n")
@@ -266,6 +225,8 @@ int handleAnyAction(Message msg) {
             break;
         case SEND_NEXT_MSG:
             LOG("Sending msg\n")
+            hasToken = false;
+            msg.token = true;
             myUDPSock.send(msg, neiAddr, neiPort);
             InOutOption = WAIT_FOR_MSG;
             break;
@@ -299,20 +260,32 @@ int handleAnyMsg(Message msg) {
         case FREE:
             if(!msg.token) LOG("error recv FREE msg with no token\n")
             else hasToken = true;
-            if(msgQueue.size() == 0) {
-                LOG("Message Free, check queue\n");
+            logger.log(logMsg("FREE message"));
+            LOG("Message Free, check queue\n");
+            if(msg.reserved == 0) {
                 InOutOption = GET_FROM_QUEUE;
+                reservedToken = false;
+            }
+            else {
+                if(reservedToken) {
+                    InOutOption = GET_FROM_QUEUE;
+                    reservedToken = false;
+                } else {
+                    InOutOption = SEND_NEXT_MSG;
+                }
             }
             break;
         case LOCAL_REGISTER_NEW:
             if(msg.token) hasToken = true;
             LOG("New Local Register\n")
+            logger.log(logMsg("LOCAL_REGISTER message"));
             *lastMsg = makeGlobalRegisterMsgFromLocal(msg);
             InOutOption = HANDLE_CURRENT;
             break;
         case REGISTER_NEW:
             if(!msg.token) LOG("error recv REGISTER_NEW msg with no token\n")
             else hasToken = true;
+            logger.log(logMsg("GLOBAL_REGISTER message"));
             iRes = handleRegisterMsg(msg);
             switch (iRes) {
                 case 0:
@@ -330,8 +303,13 @@ int handleAnyMsg(Message msg) {
                 default:
                     LOG("REGISTER_NEW switch (iRes) not handled %d\n", iRes);
             }
+            if(!msgQueue.empty()) {
+                lastMsg->reserved++;
+                reservedToken = true;
+            }
             break;
         case TEXT:
+            logger.log(logMsg("TEXT message"));
             iRes = handleTextMsg(msg);
             switch (iRes) {
                 case 0:
@@ -340,11 +318,21 @@ int handleAnyMsg(Message msg) {
                     break;
                 case 1:
                     LOG("Text Msg for me\n")
+                    reservedToken = false;
+                    if(lastMsg->reserved == -1) {
+                        lastMsg->reserved = 0;
+                        InOutOption = SEND_NEXT_MSG;
+                        break;
+                    }
                     InOutOption = GET_FROM_QUEUE;
                     break;
                 default:
                     LOG("TEXT switch (iRes) not handled %d\n", iRes);
 
+            }
+            if(!msgQueue.empty()) {
+                lastMsg->reserved++;
+                reservedToken = true;
             }
             break;
         default:

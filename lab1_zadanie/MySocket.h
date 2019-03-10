@@ -25,11 +25,8 @@ class UTPSocket {
         void init(int port = 0, char* ipAddr = (char*)"127.0.0.1");
         int send(std::string str, char addr[], int port);
         int send(char c[], char addr[], int port, size_t size = -1);
-        //int send(UnknownMessage msg, char addr[], int port);
         int send(Message msg, char addr[], int port);
         Message recvMessage();
-
-
 };
 
 class Logger {
