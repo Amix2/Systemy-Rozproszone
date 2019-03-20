@@ -7,7 +7,7 @@
 #include <string.h>
 #include <stdio.h> 
 #include "Messages.h"
-#pragma comment(lib, "ws2_32.lib")
+//#pragma comment(lib, "ws2_32.lib")
 
 #define logAddr "224.2.2.2"
 #define logPort 9009
