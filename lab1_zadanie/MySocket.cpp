@@ -19,8 +19,10 @@ UTPSocket::UTPSocket(int port, char* ipAddr) {
     
     struct sockaddr_in sockRealInfo;
     int len = sizeof(sockRealInfo);
-    if (getsockname(mySocket, (struct sockaddr *) &sockRealInfo, &(len)) == -1)
+    if (getsockname(mySocket, (struct sockaddr *) &sockRealInfo, &(len)) == -1) {
         LOG("getsockname error\n");
+
+    }
 
     strcpy(myIP, inet_ntoa(sockRealInfo.sin_addr));
 	myPort = ntohs(sockRealInfo.sin_port);
@@ -106,6 +108,9 @@ UTPSocket::~UTPSocket() {
 //Logger
 
 Logger::Logger() {
+}
+Logger::~Logger() {
+    closesocket(socketC);
 }
 void Logger::init() {
     socketC = socket(AF_INET,SOCK_DGRAM,0);
