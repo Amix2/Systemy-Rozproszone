@@ -18,7 +18,7 @@
 
 #include "MySocket.h"
 using namespace std;
-const char defaultAddr[16] = "127.0.0.1";
+const char defaultAddr[] = "127.0.0.1";
 #define maxClientsNum 10
 #define LOG(msg, ...) {cout<<to_string((GetTickCount()/100)%10000)<<" :"; printf(msg, ##__VA_ARGS__); }
 
@@ -83,12 +83,18 @@ void InputHandler() {
     }
 }
 
+void cleanUp() {
+    delete logger;
+    delete myUDPSock;
+}
+
 int main(int argc, char* argv[])
 {
+    atexit(cleanUp);
 
     cout<<"main start"<<endl;
-InitWinsock();
-logger.init();
+    InitWinsock();
+    logger.init();
     printStatus();
     cout<<"main start "<<argc<<endl;
     string msgqq = "INTRO";
@@ -115,6 +121,7 @@ logger.init();
        Sleep(1000);
     }
     cout<<"Main end"<<endl;
+
     return 0;
 }
 

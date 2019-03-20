@@ -33,6 +33,7 @@ class Logger {
         SOCKET socketC;
     public:
         Logger();
+        ~Logger();
         void init();
         int log(std::string msg);       
 };
