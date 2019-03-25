@@ -26,10 +26,9 @@ import java.io.*;
 import java.util.List;
 import java.util.LinkedList;
 
-public class SimpleChat extends ReceiverAdapter {
+public class tut extends ReceiverAdapter {
     JChannel channel;
-    //String user_name=System.getProperty("user.name", "n/a");
-    String user_name= new Double(Math.random()*10).toString();
+    String user_name=System.getProperty("user.name", "n/a");
     final List<String> state=new LinkedList<String>();
 
     public void viewAccepted(View new_view) {
@@ -113,6 +112,6 @@ public class SimpleChat extends ReceiverAdapter {
 
 
     public static void main(String[] args) throws Exception {
-        new SimpleChat().start();
+        new tut().start();
     }
 }

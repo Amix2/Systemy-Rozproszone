@@ -2,6 +2,6 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="D:/AGH/Systemy-Rozproszone/lab2/lib/jgroups-3.6.13.Final.jar"/>
+	<classpathentry kind="lib" path="D:/AGH/Systemy Rozproszone/lab2/lib/jgroups-3.6.13.Final.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
