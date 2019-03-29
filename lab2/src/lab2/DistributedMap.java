@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map.Entry;
@@ -62,11 +63,7 @@ public class DistributedMap extends ReceiverAdapter implements ISimpleStringMap 
 	}
 
 	public void receive(Message msg) { // TO DO
-		String line = msg.getObject().toString();
-		if(channel.getAddress() == msg.getSrc()) {
-			System.out.println("::receive from ME -> " + line);
-			return;
-		}		
+		String line = msg.getObject().toString();	
 		System.out.println("::receive from " + msg.getSrc().toString() + " -> " + line);
 		
 		String values[] = line.split(":");
@@ -112,7 +109,7 @@ public class DistributedMap extends ReceiverAdapter implements ISimpleStringMap 
 		channel.send(new Message(null, null, msgText));
 		} catch (Exception e) {	e.printStackTrace(); }
 		
-		putLocal(key, value);
+		//putLocal(key, value);
 	}
 	
 	
@@ -123,7 +120,7 @@ public class DistributedMap extends ReceiverAdapter implements ISimpleStringMap 
 		channel.send(new Message(null, null, msgText));
 		} catch (Exception e) {	e.printStackTrace(); }
 		
-		return removeLocal(key);
+		return get(key);
 	}
 	
 	public boolean containsKey(String key) {

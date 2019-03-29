@@ -29,10 +29,10 @@ public class Main {
 					map.put(lineValues[1], Integer.parseInt(lineValues[2]));
 				break;
 			case "remove" :
-				map.remove(lineValues[1]);
+				System.out.println("remove =>> " + map.remove(lineValues[1]));
 				break;
 			case "contains" :
-				System.out.println(map.containsKey(lineValues[1]));
+				System.out.println("containsKey =>> " + map.containsKey(lineValues[1]));
 				break;
 			case "get":
 				System.out.println(map.get(lineValues[1]));
