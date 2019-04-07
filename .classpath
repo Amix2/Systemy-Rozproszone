@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="lab1_gniazda/JavaTcpUdp/src"/>
+	<classpathentry kind="src" path="lab2/src"/>
+	<classpathentry kind="src" path="lab3_RabbitMQLab/src"/>
+	<classpathentry kind="lib" path="lab2/lib/jgroups-3.6.13.Final.jar"/>
+	<classpathentry kind="lib" path="lab2/lib/protobuf-java-2.4.1.jar"/>
+	<classpathentry kind="lib" path="lab3_RabbitMQLab/libs/amqp-client-4.0.2.jar"/>
+	<classpathentry kind="lib" path="lab3_RabbitMQLab/libs/amqp-client-4.1.0-javadoc.jar"/>
+	<classpathentry kind="lib" path="lab3_RabbitMQLab/libs/amqp-client-5.2.0-javadoc.jar"/>
+	<classpathentry kind="lib" path="lab3_RabbitMQLab/libs/amqp-client-5.2.0.jar"/>
+	<classpathentry kind="lib" path="lab3_RabbitMQLab/libs/slf4j-api-1.7.21.jar"/>
+	<classpathentry kind="lib" path="lab3_RabbitMQLab/libs/slf4j-simple-1.7.22.jar"/>
+	<classpathentry kind="output" path="lab1_gniazda/JavaTcpUdp/bin"/>
+</classpath>
