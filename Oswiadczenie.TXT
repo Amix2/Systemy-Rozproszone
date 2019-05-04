@@ -1,1 +1,1 @@
-Ja, Maciej Mucha, oœwiadczam ¿e samodzielnie wykona³em zadanie 2 JGroups z przedmiotu Systemy Rozproszone.
+Ja, Maciej Mucha, oœwiadczam ¿e samodzielnie wykona³em zadanie 3 RabbitMQ z przedmiotu Systemy Rozproszone.
