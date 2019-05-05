@@ -1,0 +1,34 @@
+// protoc\bin\protoc.exe -I=. --java_out=generated --plugin=protoc-gen-grpc-java=D:\protoc-gen-grpc-java.exe --grpc-java_out=generated bank.proto
+
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "currencyExchangeGen";
+option java_outer_classname = "CurrencyExchangeProto";
+option objc_class_prefix = "HLW";
+
+package currencyExchange;
+
+enum Currency { EUR = 0; USD = 1; CHF = 2; GBP = 3; JPY = 4; PLN = 5; } 
+
+message Number
+{
+  int32 value = 1;
+}
+
+message CurrencyMap
+{
+    message MapFieldEntry {
+        Currency key = 1;
+        int32 value = 2;
+    }
+    repeated MapFieldEntry map_field = 2;
+}
+
+message CurrencyList {
+  repeated Currency list = 1;
+}
+
+service CurrencyExchangeStream {
+  rpc orderCurrencyExchange(CurrencyList) returns (stream CurrencyMap) {}
+}

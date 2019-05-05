@@ -21,21 +21,20 @@ module Banks
     AccountType accountType;
     string key;
   };
-  
-  interface AccountManager {
-    NewAccountDetails createNewAccount(int monthIncome)
-      throws ErrorNewUser;
-    NewAccountDetails connectAccount()
-      throws ErrorConnectUser;
-  };
 
   interface Account {
     DualCurrency getLoan(Currency currency, int amount, int time) 
       throws ErrorLoan;
     int getStatus();
+    string getKey();
   };
 
   interface AccountPremium extends Account {
+  };
+  
+  interface AccountManager {
+    Account* createNewAccount(int monthIncome)
+      throws ErrorNewUser;
   };
 };
 

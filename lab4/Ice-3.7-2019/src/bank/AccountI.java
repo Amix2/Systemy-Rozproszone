@@ -13,7 +13,7 @@ import Banks.localCurrency;
 
 public class AccountI implements Account, localCurrency {
 	@SuppressWarnings("unused")
-	private String name, surname, PESEL, key; 
+	protected String name, surname, PESEL, key; 
 	CurrencyTranslator currencyTranslator;
 	
 
@@ -32,8 +32,12 @@ public class AccountI implements Account, localCurrency {
 
 	@Override
 	public int getStatus(Current current) {
-		// TODO Auto-generated method stub
-		return 0;
+		return Integer.parseInt(PESEL) * 13;
+	}
+
+	@Override
+	public String getKey(Current current) {
+		return key;
 	}
 
 }
