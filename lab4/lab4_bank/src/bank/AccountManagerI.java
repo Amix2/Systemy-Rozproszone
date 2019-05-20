@@ -47,7 +47,7 @@ public class AccountManagerI implements AccountManager {
 				identity = new Identity(PESEL, "standard");
 			}
 			else {
-				throw new Error("Magic");
+				throw new Error();
 			}
 			adapter.add(accountOut, identity);
 		} catch (com.zeroc.Ice.AlreadyRegisteredException e) {
@@ -55,12 +55,5 @@ public class AccountManagerI implements AccountManager {
 			throw new ErrorNewUser();
 		}
 		return AccountPrx.checkedCast(adapter.createProxy(identity));
-	}
-
-
-	@Override
-	public AccountPrx connectAccount(Current current) throws ErrorConnectUser {
-		// TODO Auto-generated method stub
-		return null;
 	}
 }

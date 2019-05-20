@@ -9,17 +9,11 @@ module Banks
 
   exception ErrorLoan {};
   exception ErrorNewUser {};
-  exception ErrorConnectUser {};
 
   struct DualCurrency {
     Currency globalCurrency;
     int globalCurrencyValue;
     int localCurrencyValue;
-  };
-
-  struct NewAccountDetails {
-    AccountType accountType;
-    string key;
   };
 
   interface Account {
