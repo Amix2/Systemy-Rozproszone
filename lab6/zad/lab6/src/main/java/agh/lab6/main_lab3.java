@@ -8,7 +8,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.zookeeper.KeeperException;
 
-import agh.lab6.test.ZKManagerImpl;
 
 /**
  * Hello world!
