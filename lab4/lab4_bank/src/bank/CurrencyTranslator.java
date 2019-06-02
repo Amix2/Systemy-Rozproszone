@@ -23,7 +23,6 @@ public class CurrencyTranslator implements localCurrency{
 	private CurrencyExchangeStreamStub currencyExchangeStreamStub;
 	
 	
-	int v= 89;
 	public CurrencyTranslator(ArrayList<Currency> currList) {
 		this.currList = currList;
 		connectToExchange();
@@ -33,7 +32,6 @@ public class CurrencyTranslator implements localCurrency{
 	
 	private void connectToExchange() {
 		channel = ManagedChannelBuilder.forAddress("localhost", 20000)
-				// Channels are secure by default (via SSL/TLS). For the example we disable TLS to avoid needing certificates.
 				.usePlaintext(true)
 				.build();
 
