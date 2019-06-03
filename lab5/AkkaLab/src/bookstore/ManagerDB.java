@@ -26,8 +26,8 @@ import akka.actor.OneForOneStrategy;
 public class ManagerDB extends AbstractActor {
 	
 	private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);
-	private final int NUMBER_OF_FILES = 2;
-	Map<String, Integer> requestComplited = new HashMap<>();
+	private final static int NUMBER_OF_FILES = 2;
+	static Map<String, Integer> requestComplited = new HashMap<>();
 	
 	private List<ActorRef> dbActors = new ArrayList<ActorRef>();
 
@@ -74,8 +74,22 @@ public class ManagerDB extends AbstractActor {
 	private static SupervisorStrategy strategy
     	= new AllForOneStrategy(10, Duration.create("1 minute"), DeciderBuilder
     		.match(IOException.class, o -> restart())
-    		.match(BookFileNotAvaliableException.class, o -> resume())
-    		.match(BookNotInDBException.class, o -> resume())
+    		.match(BookFileNotAvaliableException.class, o -> {
+    			int endedBefore = requestComplited.get(o.name);
+    			if(endedBefore+1 <= NUMBER_OF_FILES) {
+    				o.actor.tell(new PriceResponse(null, o.actor, o.name), null);
+    				requestComplited.remove(o.name);
+    			}
+    			return resume();
+    			})
+    		.match(BookNotInDBException.class, o -> {
+    			int endedBefore = requestComplited.get(o.name);
+    			if(endedBefore+1 <= NUMBER_OF_FILES) {
+    				o.actor.tell(new PriceResponse(-1, o.actor, o.name), null);
+    				requestComplited.remove(o.name);
+    			}
+    			return resume();
+    			})
             .matchAny(o -> restart()).
             build());
 

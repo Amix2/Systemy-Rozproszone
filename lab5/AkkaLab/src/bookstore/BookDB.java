@@ -47,13 +47,13 @@ public class BookDB extends AbstractActor {
 	        				name = allFileInfo();
 	        			} else {
 	        				price = searchFile(name);
-	        				if(price == null) throw new BookNotInDBException(o.actor);
+	        				if(price == null) throw new BookNotInDBException(o.actor, o.name);
 	        			}
 	        			
 	        			this.getSender().tell(new PriceResponse(price, o.actor, name), getSelf());
 	        			
         			} catch(IOException e) {
-        				throw new BookFileNotAvaliableException(o.actor);
+        				throw new BookFileNotAvaliableException(o.actor, o.name);
         			}
         		})
                 .matchAny(o -> log.info("Not-String mgs: " + o.toString()))

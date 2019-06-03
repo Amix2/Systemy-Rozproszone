@@ -43,7 +43,7 @@ public class StreamService extends AbstractActor {
 					
 					final Materializer materializer = ActorMaterializer.create(getContext().system());
 					final Source<StreamResponse, NotUsed> source = Source.from(lineList).map(line -> new StreamResponse(o.name, o.actor, (String) line));
-					final Sink<StreamResponse, NotUsed> sinkActor2 = Sink.actorRef(o.actor, null);
+					final Sink<StreamResponse, NotUsed> sinkActor2 = Sink.actorRef(o.actor, "Stream ended");
 					source.throttle(1, Duration.create(1, TimeUnit.SECONDS), 1, ThrottleMode.shaping()).runWith(sinkActor2, materializer);
 				})
                 .matchAny(o -> log.info("Not-String mgs: " + o.toString()))

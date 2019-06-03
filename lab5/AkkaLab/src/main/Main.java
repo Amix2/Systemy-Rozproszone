@@ -17,8 +17,10 @@ import bookstore.Bookstore;
 public class Main {
 	public static void main(String[] args) throws Exception {
 
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		String conf = br.readLine();
         // config
-        File configFile = new File("main_conf.conf");        
+        File configFile = new File("main_conf"+conf+".conf");        
         Config config = ConfigFactory.parseFile(configFile);
         
         // create actor system & actors
@@ -26,7 +28,6 @@ public class Main {
         final ActorRef actorMain = system.actorOf(Props.create(MainActor.class), "mainActor");
 
         // interaction
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         while (true) {
     		System.out.println("q, bookList, getPrice, stream, order");
     		String line = br.readLine();
