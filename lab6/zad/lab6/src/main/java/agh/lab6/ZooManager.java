@@ -16,9 +16,9 @@ public class ZooManager {
 	
 	private ZooKeeper zkeeper;
 	
-	public ZooManager() {
+	public ZooManager(String port) {
 		try {
-			zkeeper = ZooConnection.createZoo("localhost:2181");
+			zkeeper = ZooConnection.createZoo("localhost:"+port);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -29,7 +29,18 @@ public class ZooManager {
 	}
 	
 	public void bindWatcherToChildren(String path, Watcher watcher) throws KeeperException, InterruptedException {
-		zkeeper.getChildren(path, watcher);
+		if(!path.startsWith("/")) {
+			//System.out.println(path);
+			return;
+		}
+		List<String> children = zkeeper.getChildren(path, watcher);
+		children.forEach(child -> {
+			try {
+				bindWatcherToChildren(child, watcher);
+			} catch (Exception e) {
+				e.printStackTrace();
+			} 
+		});
 	}
 	
 	
@@ -49,13 +60,17 @@ public class ZooManager {
 	}
 	
 	private void printChildren(String path, int dec) throws KeeperException, InterruptedException {
+		//System.out.println(path);
+		if(!path.startsWith("/")) {
+			//System.out.println(path);
+			return;
+		}
 		List<String> children = zkeeper.getChildren(path, true);
-		System.out.println(String.join("", Collections.nCopies(dec, "| "))+path);
+		System.out.println(path);
 		children.forEach(child -> {
 			try {
-				printChildren(child, dec+1);
+				printChildren(path+"/"+child, dec+1);
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		});
@@ -71,6 +86,7 @@ public class ZooManager {
 	
 	public void update(String path, byte[] data) throws KeeperException, InterruptedException {
 		System.out.println("update");
+		
 		int version = zkeeper.exists(path, true).getVersion();
 		zkeeper.setData(path, data, version);
 	}

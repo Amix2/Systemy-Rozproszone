@@ -3,11 +3,14 @@ package agh.lab6;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.List;
 
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
+
+import io.netty.util.internal.SystemPropertyUtil;
 
 public class CalcWatcher implements Watcher {
 
@@ -24,11 +27,11 @@ public class CalcWatcher implements Watcher {
 
 	public void process(WatchedEvent event) {
 		String path = event.getPath();
-		System.out.println("~~~~~~~ Watcher ~~~~~~");
-		System.out.println("getType " + event.getType());
-		System.out.println("getPath " + event.getPath());
-		System.out.println("getState " + event.getState());
-		System.out.println("~~~~~~~~~~~~~~~~~~~~~~");
+		//System.out.println("~~~~~~~ Watcher ~~~~~~");
+		//System.out.println("getType " + event.getType());
+		//System.out.println("getPath " + event.getPath());
+		//System.out.println("getState " + event.getState());
+		//System.out.println("~~~~~~~~~~~~~~~~~~~~~~");
 		try {
 			switch(event.getType()) {
 			case ChildWatchRemoved:
@@ -36,10 +39,18 @@ public class CalcWatcher implements Watcher {
 			case DataWatchRemoved:
 				break;
 			case NodeChildrenChanged:
-				System.out.println("New Child, total children: " + zoo.getChildren(path, true).size());
-				zoo.getChildren(path, this);
+				System.out.println("New Child " + path + ", total children: " + numChildren(path));
+				List<String> children = zoo.getChildren(path, this);
+				children.forEach(child -> {
+					try {
+						bindWatcherToChildren(path+"/"+child, this);
+					} catch (Exception e) {
+						e.printStackTrace();
+					} 
+				});
 				break;
 			case NodeDataChanged:
+				System.out.println("Data changed, new data: " + zoo.getData(path, true, null).toString());
 				zoo.exists(path, this);
 				break;
 			case NodeDeleted:
@@ -59,6 +70,45 @@ public class CalcWatcher implements Watcher {
 			e.printStackTrace();
 		}
 		
+	}
+	
+	private int numChildren(String path) {
+		if(!path.startsWith("/")) {
+			System.out.println(path);
+			return 0;
+		}
+		int out = 0;
+		List<String> children = null;
+		//System.out.println(path);
+		try {
+			children = zoo.getChildren(path, true);
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		for(String ch : children) {
+			try {
+				out += numChildren(path+"/"+ch);
+			} catch (Exception e) {
+				e.printStackTrace();
+			} 
+		}
+		return out+children.size();
+	}
+	
+	public void bindWatcherToChildren(String path, Watcher watcher) throws KeeperException, InterruptedException {
+		if(!path.startsWith("/")) {
+			//System.out.println(path);
+			return;
+		}
+		List<String> children = zoo.getChildren(path, watcher);
+		children.forEach(child -> {
+			try {
+				bindWatcherToChildren(path+"/"+child, watcher);
+			} catch (Exception e) {
+				e.printStackTrace();
+			} 
+		});
 	}
 	
 	private void createProgram() {

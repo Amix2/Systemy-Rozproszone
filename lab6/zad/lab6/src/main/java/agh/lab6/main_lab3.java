@@ -19,11 +19,12 @@ public class main_lab3
 	static BufferedReader buffer = new BufferedReader(new InputStreamReader(System.in));
 	static CalcWatcher watcher;
 		
-    public static void main( String[] args ) 
+    public static void main( String[] args ) throws IOException 
     {
         System.out.println( "Main start" );
-         
-        ZooManager zooManager = new ZooManager();
+        System.out.print("port =>\t");
+        String port = buffer.readLine();
+        ZooManager zooManager = new ZooManager(port);
         watcher = new CalcWatcher("Calc", "Calculator");
         
         String line;
